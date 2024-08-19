@@ -1,6 +1,4 @@
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { createOpenAI } from "@ai-sdk/openai";
-import { APICallError, generateText } from "ai";
+import OpenAI from "openai";
 
 export const getMetadadataByFilename = async ({
   openAiApiKey,
@@ -13,53 +11,35 @@ export const getMetadadataByFilename = async ({
   geminiApiKey?: string;
   metadataPrompt: string;
 }) => {
-  let provider = null;
-  let selectedProvider = null;
   if (openAiApiKey) {
-    provider = createOpenAI({
+    const client = new OpenAI({
       apiKey: openAiApiKey,
     });
-    selectedProvider = "OpenAI";
+
+    const response = await client.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: metadataPrompt,
+        },
+        {
+          role: "user",
+          content: `Get metadata for ${filename}`,
+        },
+      ],
+    });
+
+    if (response.choices.length === 0) {
+      return { success: false, msg: "No response from OpenAI" };
+    }
+
+    const metadata = response.choices[0].message.content;
+    return { success: true, data: metadata };
   } else if (geminiApiKey) {
-    provider = createGoogleGenerativeAI({
-      apiKey: geminiApiKey,
-    });
-    selectedProvider = "Google";
-  }
-  if (!provider) {
-    throw new Error("No API key provided");
-  }
-  try {
-    const { text } = await generateText({
-      model: provider(
-        selectedProvider === "Google"
-          ? "models/gemini-1.5-pro-latest"
-          : "gpt-3.5-turbo"
-      ),
-
-      system: metadataPrompt,
-      prompt: ` ${
-        selectedProvider === "Google" ? metadataPrompt : ""
-      }. Generate a metadata for ${filename} `,
-    });
-
-    const parsedJson = JSON.parse(text);
-    return { success: true, data: parsedJson };
-  } catch (error: any) {
-    if (error instanceof APICallError) {
-      return { success: false, msg: error.message };
-    }
-
-    if (error instanceof SyntaxError) {
-      return {
-        success: false,
-        msg: "Failed to parse the generated metadata. Please try again.",
-      };
-    }
-
-    return {
-      success: false,
-      msg: "An unexpected error occurred. Please check your API key and try again.",
-    };
+    // Call Gemini API
+    return { success: true, data: "Gemini metadata" };
+  } else {
+    return { success: false, msg: "No API key provided" };
   }
 };

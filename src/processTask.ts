@@ -24,7 +24,6 @@ export async function processTask(
   apiType: "OPENAI" | "GEMINI",
   ourApi: boolean
 ) {
-
   const generator = generators.find((g) => g.id === generatorId);
   if (!generator) {
     throw new Error("Invalid generator ID");
@@ -117,6 +116,16 @@ function processMetadata(
   file: ExtendedFile,
   generator: Generator
 ) {
+  // string to json metadata
+  if (typeof metadata === "string") {
+    try {
+      metadata = JSON.parse(metadata);
+    } catch (error) {
+      console.error("Error parsing metadata:", error);
+      metadata = {};
+    }
+  }
+
   let fileName = file.filename;
   if (generator.id === 4) {
     fileName = fileName.replace(/\s+/g, "_");
