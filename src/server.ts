@@ -36,6 +36,11 @@ app.post("/process", async (req, res) => {
   res.status(200).json({ success: true, msg: "Task processing started" });
 });
 
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
 app.listen(PORT, () => {
   console.log(`Processing server is running on port ${PORT}`);
 });
+
