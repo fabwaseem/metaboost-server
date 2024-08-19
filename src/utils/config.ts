@@ -1,0 +1,184 @@
+import { Generator } from "../types";
+
+export const generators: Generator[] = [
+  {
+    id: 1,
+    title: "AdobeStock",
+    color: "#FD4949",
+    csvRequirements: {
+      structure: ["Filename", "Title", "Keywords", "Category"],
+      generate: ["Title", "Keywords", "Category"],
+      delimiter: ",",
+    },
+    categories: [
+      { id: 1, name: "Animals" },
+      { id: 2, name: "Buildings and Architecture" },
+      { id: 3, name: "Business" },
+      { id: 4, name: "Drinks" },
+      { id: 5, name: "The Environment" },
+      { id: 6, name: "States of Mind" },
+      { id: 7, name: "Food" },
+      { id: 8, name: "Graphic Resources" },
+      { id: 9, name: "Hobbies and Leisure" },
+      { id: 10, name: "Industry" },
+      { id: 11, name: "Landscape" },
+      { id: 12, name: "Lifestyle" },
+      { id: 13, name: "People" },
+      { id: 14, name: "Plants and Flowers" },
+      { id: 15, name: "Culture and Religion" },
+      { id: 16, name: "Science" },
+      { id: 17, name: "Social Issues" },
+      { id: 18, name: "Sports" },
+      { id: 19, name: "Technology" },
+      { id: 20, name: "Transport" },
+      { id: 21, name: "Travel" },
+    ],
+    comingSoon: false,
+  },
+  {
+    id: 2,
+    title: "Shutterstock",
+    color: "#FDB549",
+    csvRequirements: {
+      structure: ["Filename", "Description", "Keywords", "Categories"],
+      generate: ["Description", "Keywords", "Categories"],
+      delimiter: ",",
+    },
+    categories: [
+      { id: 1, name: "Abstract" },
+      { id: 2, name: "Animals/Wildlife" },
+      { id: 3, name: "Arts" },
+      { id: 4, name: "Backgrounds/Textures" },
+      { id: 5, name: "Beauty/Fashion" },
+      { id: 6, name: "Buildings/Landmarks" },
+      { id: 7, name: "Business/Finance" },
+      { id: 8, name: "Celebrities" },
+      { id: 9, name: "Education" },
+      { id: 10, name: "Food and Drink" },
+      { id: 11, name: "Healthcare/Medical" },
+      { id: 12, name: "Holidays" },
+      { id: 13, name: "Industrial" },
+      { id: 14, name: "Interiors" },
+      { id: 15, name: "Miscellaneous" },
+      { id: 16, name: "Nature" },
+      { id: 17, name: "Objects" },
+      { id: 18, name: "Parks/Outdoor" },
+      { id: 19, name: "People" },
+      { id: 20, name: "Religion" },
+      { id: 21, name: "Science" },
+      { id: 22, name: "Signs/Symbols" },
+      { id: 23, name: "Sports/Recreation" },
+      { id: 24, name: "Technology" },
+      { id: 25, name: "Transportation" },
+      { id: 26, name: "Vintage" },
+    ],
+    comingSoon: false,
+  },
+  {
+    id: 3,
+    title: "Freepik",
+    color: "#83FD49",
+    csvRequirements: {
+      structure: ["File name", "Title", "Keywords", "Prompt", "Model"],
+      generate: ["Title", "Keywords"],
+      delimiter: ";",
+    },
+    models: [
+      "Adobe Firefly",
+      "Dall-e 1",
+      "Dall-e 2",
+      "Dall-e 3",
+      "Freepik Pikaso",
+      "Ideogram 1.0",
+      "Leonardo",
+      "Midjourney 1",
+      "Midjourney 2",
+      "Midjourney 3",
+      "Midjourney 4",
+      "Midjourney 5",
+      "Midjourney 5.1",
+      "Midjourney 5.2",
+      "Midjourney 6",
+      "Stable Diffusion 1.4",
+      "Stable Diffusion 1.5",
+      "Stable Diffusion 2.0",
+      "Stable Diffusion 2.1",
+      "Stable Diffusion XL",
+      "Wepik",
+    ],
+    comingSoon: false,
+  },
+  {
+    id: 4,
+    title: "Vecteezy",
+    color: "#49fddd",
+    csvRequirements: {
+      structure: ["Filename", "Title", "Description", "Keywords"],
+      generate: ["Title", "Description", "Keywords"],
+      delimiter: ",",
+    },
+    comingSoon: false,
+  },
+  {
+    id: 5,
+    title: "123rf",
+    color: "#6D49FD",
+    csvRequirements: {
+      structure: ["Filename", "Title", "Description", "Keywords"],
+      generate: ["Title", "Description", "Keywords"],
+      delimiter: ",",
+    },
+    comingSoon: true,
+  },
+  {
+    id: 6,
+    title: "Dreamstime",
+    color: "#FD49C0",
+    csvRequirements: {
+      structure: [
+        "Filename",
+        "Image Name",
+        "Description",
+        "Category 1",
+        "Category 2",
+        "Category 3",
+        "Keywords",
+      ],
+      generate: ["Image Name", "Description", "keywords"],
+      delimiter: ",",
+    },
+    comingSoon: true,
+  },
+  {
+    id: 7,
+    title: "Motion Element",
+    color: "#DD4FC3",
+    csvRequirements: {
+      structure: [
+        "Filename",
+        "Image Name",
+        "Description",
+        "Category 1",
+        "Category 2",
+        "Category 3",
+        "Keywords",
+      ],
+      generate: ["Image Name", "Description", "keywords"],
+      delimiter: ",",
+    },
+    comingSoon: true,
+  },
+];
+
+export const PROCESS_FILES_AT_A_TIME = 30;
+export const UPDATE_INTERVAL = 10000;
+export const TASK_FETCH_INTERVAL = 10000;
+export const MAX_FILE_SIZE = 1024 * 1024 * 10;
+export const MAX_FILES = 10;
+
+export const CREDITS_PER_FILE_WITH_OUR_API = 5;
+export const CREDITS_PER_FILE_WITH_USER_API = 1;
+
+export const CREDIT_VALUE = 0.00015;
+
+export const ADMIN_ROLES = ["ADMIN", "SUPERADMIN"];

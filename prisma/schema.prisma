@@ -1,0 +1,206 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+model accounts {
+  id                  String  @id
+  user_id             String
+  type                String
+  provider            String
+  provider_account_id String
+  refresh_token       String?
+  access_token        String?
+  expires_at          Int?
+  token_type          String?
+  scope               String?
+  id_token            String?
+  session_state       String?
+  users               users   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([provider, provider_account_id])
+}
+
+model comments {
+  id         String    @id
+  content    String
+  feedbackId String
+  userId     String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime
+  feedbacks  feedbacks @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  users      users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model credit_transactions {
+  id            String          @id
+  userId        String
+  amount        Int
+  type          TransactionType
+  createdAt     DateTime        @default(now())
+  transactionId String?
+  transactions  transactions?   @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  users         users           @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model credits {
+  id        String   @id
+  userId    String   @unique
+  balance   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  users     users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model feedbacks {
+  id          String         @id
+  title       String
+  description String?
+  types       FeedbackType[] @default([])
+  status      FeedbackStatus @default(UNDER_REVIEW)
+  userId      String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime
+  comments    comments[]
+  users       users          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  upvotes     upvotes[]
+}
+
+model sessions {
+  id            String   @id
+  session_token String   @unique
+  user_id       String
+  expires       DateTime
+  users         users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model settings {
+  id        String   @id
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+}
+
+model tasks {
+  id          String     @id
+  status      TaskStatus @default(PROCESSING)
+  progress    Int        @default(0)
+  totalFiles  Int
+  result      Json?
+  user_id     String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime
+  creditsUsed Int
+  generator   String
+  users       users      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model transactions {
+  id                  String                @id
+  userId              String
+  amount              Int
+  currency            TransactionCurrency
+  status              TransactionStatus     @default(PENDING)
+  paymentMethod       String?
+  creditAmount        Int
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime
+  credit_transactions credit_transactions[]
+  users               users                 @relation(fields: [userId], references: [id])
+}
+
+model upvotes {
+  id         String    @id
+  feedbackId String
+  userId     String
+  createdAt  DateTime  @default(now())
+  feedbacks  feedbacks @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  users      users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([feedbackId, userId])
+}
+
+model users {
+  id                  String                @id
+  name                String?
+  email               String?               @unique
+  email_verified      DateTime?
+  image               String?
+  role                Role                  @default(USER)
+  geminiApiKey        String?
+  openAiApiKey        String?
+  preferredApi        AiApi?                @default(OPENAI)
+  accounts            accounts[]
+  comments            comments[]
+  credit_transactions credit_transactions[]
+  credits             credits?
+  feedbacks           feedbacks[]
+  sessions            sessions[]
+  tasks               tasks[]
+  transactions        transactions[]
+  upvotes             upvotes[]
+}
+
+model verificationtokens {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+enum AiApi {
+  OPENAI
+  GEMINI
+}
+
+enum FeedbackStatus {
+  UNDER_REVIEW
+  PLANNED
+  IN_DEVELOPMENT
+  SHIPPED
+}
+
+enum FeedbackType {
+  IMPROVEMENT
+  INTEGRATION
+  STYLING
+  MISC
+  FEATURE
+  BUG
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPERADMIN
+}
+
+enum TaskStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum TransactionCurrency {
+  PKR
+  USD
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum TransactionType {
+  PURCHASE
+  USAGE
+  REFUND
+  REWARD
+}
