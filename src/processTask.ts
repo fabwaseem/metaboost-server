@@ -117,7 +117,15 @@ function processMetadata(
   // string to json metadata
   if (typeof metadata === "string") {
     try {
-      metadata = JSON.parse(metadata);
+      // check if { and } are present in the string
+      if (metadata.indexOf("{") !== -1 && metadata.indexOf("}") !== -1) {
+        //  if there is anythin outside of {} remove it and get the json object
+        const jsonString = metadata.match(/\{([^}]+)\}/)?.[0];
+        metadata = JSON.parse(jsonString ?? "{}");
+      } else {
+        // throw error if metadata is not in json format
+        throw new Error("Metadata is not in JSON format");
+      }
     } catch (error) {
       console.error("Error parsing metadata:", error);
       metadata = {};

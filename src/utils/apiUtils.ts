@@ -39,8 +39,20 @@ export const getMetadadataByFilename = async ({
     const metadata = response.choices[0].message.content;
     return { success: true, data: metadata };
   } else if (geminiApiKey) {
-    // Call Gemini API
-    return { success: true, data: "Gemini metadata" };
+    const genAI = new GoogleGenerativeAI(geminiApiKey);
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash",
+    });
+
+    try {
+      const joinedPrompt = `${metadataPrompt}. /n Generate metadata for ${filename}`;
+      const response = await model.generateContent(joinedPrompt);
+      const chatResponse = response.response?.text() || "";
+      console.log(response.response?.text());
+      return { success: true, data: chatResponse };
+    } catch (error) {
+      return { success: false, msg: "Something went wrong" };
+    }
   } else {
     return { success: false, msg: "No API key provided" };
   }
