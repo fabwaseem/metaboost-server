@@ -122,6 +122,10 @@ function processMetadata(
         //  if there is anythin outside of {} remove it and get the json object
         const jsonString = metadata.match(/\{([^}]+)\}/)?.[0];
         metadata = JSON.parse(jsonString ?? "{}");
+        // if Keywords is present in metadata, and it is a string, convert it to array
+        if (metadata.Keywords && typeof metadata.Keywords === "string") {
+          metadata.Keywords = metadata.Keywords.split(",");
+        }
       } else {
         // throw error if metadata is not in json format
         throw new Error("Metadata is not in JSON format");

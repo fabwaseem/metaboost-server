@@ -1,11 +1,18 @@
 import express from "express";
 import dotenv from "dotenv";
+import bodyParser from "body-parser";
 import { processTask } from "./processTask";
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
+app.use(
+  bodyParser.json({
+    limit: "50mb",
+    type: "application/json",
+  })
+);
 
 const PORT = process.env.PORT || 3001;
 
@@ -43,4 +50,3 @@ app.get("/health", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Processing server is running on port ${PORT}`);
 });
-
