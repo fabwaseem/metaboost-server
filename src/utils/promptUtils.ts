@@ -1,8 +1,5 @@
 import { Generator } from "../types";
 
-export const metadataPrompt =
-  "You are an expert Adobe Stock metadata json writer i.e. title and keywords for images based on the provided details related to image. Keep title accurate, relevant, descriptive, and precise. Avoid using the same keyword more than once.Give more than 40 to 50 keywords.only give response in json ";
-
 export const generatePrompt = (
   generator: Generator,
   numKeywords: number
@@ -40,6 +37,7 @@ export const generatePrompt = (
       prompt += "Provide accurate and relevant metadata for the image. ";
   }
 
-  prompt += " Only give the response in JSON format.";
+  prompt +=
+    ' Only give the response in JSON format like this: {"title": "", "description": "", "keywords": []} dont add anything outside of the JSON object.';
   return prompt;
 };

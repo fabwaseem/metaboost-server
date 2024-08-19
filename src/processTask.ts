@@ -55,13 +55,11 @@ export async function processTask(
   const processSingleFile = async (file: any, retryCount = 0) => {
     try {
       const prompt = generatePrompt(generator, numKeywords);
-      console.log("Prompt:", prompt);
       const result = await getMetadadataByFilename({
         filename: file.title,
         [apiType === "OPENAI" ? "openAiApiKey" : "geminiApiKey"]: apiKey,
         metadataPrompt: prompt,
       });
-      console.log("Result:", result);
       if (!result.success) {
         throw new Error(result.msg);
       }
