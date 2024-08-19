@@ -89,7 +89,21 @@ export async function processTask(
   };
 
   try {
-    await Promise.all(files.map((file) => processSingleFile(file)));
+    // if apitype is gemini, only process 1 file at a time and max 15 per minute else processall at once
+    if (apiType === "GEMINI") {
+      const now = Date.now();
+      const delay = 4000; // Delay in milliseconds (15 files per minute = 4 seconds per file)
+
+      for (let i = 0; i < files.length; i++) {
+        await processSingleFile(files[i]);
+
+        if (i < files.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+      }
+    } else {
+      await Promise.all(files.map((file) => processSingleFile(file)));
+    }
 
     const creditsUsed =
       processedImages *
