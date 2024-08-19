@@ -38,6 +38,6 @@ export const generatePrompt = (
   }
 
   prompt +=
-    ' Only give the response in JSON format like this: {"title": "", "description": "", "keywords": []} dont add anything outside of the JSON object.';
+    ' Only give the response in JSON format.';
   return prompt;
 };

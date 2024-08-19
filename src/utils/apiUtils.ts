@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export const getMetadadataByFilename = async ({
   openAiApiKey,
@@ -28,6 +29,7 @@ export const getMetadadataByFilename = async ({
           content: `Get metadata for ${filename}`,
         },
       ],
+      response_format: { type: "json_object" },
     });
 
     if (response.choices.length === 0) {
