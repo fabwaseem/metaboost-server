@@ -42,13 +42,13 @@ export const getMetadadataByFilename = async ({
     const genAI = new GoogleGenerativeAI(geminiApiKey);
     const model = genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
+      generationConfig: { responseMimeType: "application/json" },
     });
 
     try {
       const joinedPrompt = `${metadataPrompt}. /n Generate metadata for ${filename}`;
       const response = await model.generateContent(joinedPrompt);
       const chatResponse = response.response?.text() || "";
-      console.log(response.response?.text());
       return { success: true, data: chatResponse };
     } catch (error) {
       return { success: false, msg: "Something went wrong" };
