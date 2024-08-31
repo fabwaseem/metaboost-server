@@ -6,10 +6,9 @@ import { processTask } from "./processTask";
 dotenv.config();
 
 const app = express();
-app.use(express.json());
 app.use(
-  bodyParser.json({
-    limit: "50mb",
+  bodyParser.urlencoded({
+    limit: "500mb",
     type: "application/json",
   })
 );
