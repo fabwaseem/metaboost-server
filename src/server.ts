@@ -26,6 +26,7 @@ app.post("/process", async (req, res) => {
     apiKey,
     apiType,
     ourApi,
+    useVision
   } = req.body;
 
   // Start processing the task asynchronously
@@ -37,11 +38,13 @@ app.post("/process", async (req, res) => {
     userId,
     apiKey,
     apiType,
-    ourApi
+    ourApi,
+    useVision
   ).catch((error) => console.error("Error processing task:", error));
 
   res.status(200).json({ success: true, msg: "Task processing started" });
 });
+
 
 app.get("/health", (req, res) => {
   res.status(200).send("OK");

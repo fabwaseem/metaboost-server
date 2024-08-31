@@ -1,29 +1,38 @@
 import { PrismaClient } from "@prisma/client";
 
-import { getMetadadataByFilename } from "./utils/apiUtils";
-import { generatePrompt } from "./utils/promptUtils";
-import { updateUserCredits } from "./utils/userUtils";
+import { ExtendedFile, Generator } from "./types";
+import {
+  getMetadadataByFilename,
+  getMetadadataByImage,
+} from "./utils/apiUtils";
 import {
   CREDITS_PER_FILE_WITH_OUR_API,
   CREDITS_PER_FILE_WITH_USER_API,
+  CREDITS_PER_FILE_WITH_VISION_API,
   generators,
-  PROCESS_FILES_AT_A_TIME,
   UPDATE_INTERVAL,
 } from "./utils/config";
-import { ExtendedFile, Generator } from "./types";
+import { generatePrompt } from "./utils/promptUtils";
+import { updateUserCredits } from "./utils/userUtils";
 
 const prisma = new PrismaClient();
 
 export async function processTask(
   taskId: string,
-  files: any[],
+  files: {
+    id: string;
+    title: string;
+    url: string;
+  }[],
   generatorId: number,
   numKeywords: number,
   userId: string,
   apiKey: string,
   apiType: "OPENAI" | "GEMINI",
-  ourApi: boolean
+  ourApi: boolean,
+  useVision: boolean
 ) {
+  console.log({ useVision });
   const generator = generators.find((g) => g.id === generatorId);
   if (!generator) {
     throw new Error("Invalid generator ID");
@@ -55,11 +64,20 @@ export async function processTask(
   const processSingleFile = async (file: any, retryCount = 0) => {
     try {
       const prompt = generatePrompt(generator, numKeywords);
-      const result = await getMetadadataByFilename({
-        filename: file.title,
-        [apiType === "OPENAI" ? "openAiApiKey" : "geminiApiKey"]: apiKey,
-        metadataPrompt: prompt,
-      });
+      let result;
+      if (useVision) {
+        result = await getMetadadataByImage({
+          url: file.url,
+          [apiType === "OPENAI" ? "openAiApiKey" : "geminiApiKey"]: apiKey,
+          metadataPrompt: prompt,
+        });
+      } else {
+        result = await getMetadadataByFilename({
+          filename: file.title,
+          [apiType === "OPENAI" ? "openAiApiKey" : "geminiApiKey"]: apiKey,
+          metadataPrompt: prompt,
+        });
+      }
       if (!result.success) {
         throw new Error(result.msg);
       }
@@ -107,7 +125,11 @@ export async function processTask(
 
     const creditsUsed =
       processedImages *
-      (ourApi ? CREDITS_PER_FILE_WITH_OUR_API : CREDITS_PER_FILE_WITH_USER_API);
+      (ourApi
+        ? useVision
+          ? CREDITS_PER_FILE_WITH_VISION_API
+          : CREDITS_PER_FILE_WITH_OUR_API
+        : CREDITS_PER_FILE_WITH_USER_API);
     console.log("Credits used:", creditsUsed);
     await updateUserCredits(userId, creditsUsed, "USAGE");
 

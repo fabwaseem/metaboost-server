@@ -177,6 +177,7 @@ export const MAX_FILE_SIZE = 1024 * 1024 * 10;
 export const MAX_FILES = 10;
 
 export const CREDITS_PER_FILE_WITH_OUR_API = 5;
+export const CREDITS_PER_FILE_WITH_VISION_API = 30;
 export const CREDITS_PER_FILE_WITH_USER_API = 1;
 
 export const CREDIT_VALUE = 0.00015;
