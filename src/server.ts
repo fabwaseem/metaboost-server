@@ -7,7 +7,7 @@ dotenv.config();
 
 const app = express();
 app.use(
-  bodyParser.urlencoded({
+  bodyParser.json({
     limit: "500mb",
     type: "application/json",
   })
