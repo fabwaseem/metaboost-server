@@ -81,7 +81,6 @@ export async function processTask(
       if (!result.success) {
         throw new Error(result.msg);
       }
-
       processedImages++;
       const processedMetadata = processMetadata(result.data, file, generator);
       results.push({
@@ -89,7 +88,7 @@ export async function processTask(
         metadata: { ...processedMetadata, status: true },
       });
     } catch (error) {
-      console.error("Error processing file:", file.title, error);
+      console.log("Error processing file:", file.title, error);
 
       if (retryCount < 2) {
         console.log(`Retrying file: ${file.title}, attempt ${retryCount + 1}`);

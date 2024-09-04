@@ -9,7 +9,7 @@ export const generatePrompt = (
 
   let prompt = `You are an expert ${title} metadata JSON writer. Generate the following fields for images based on the provided details: ${requiredFields.join(
     ", "
-  )}. if there is title in fields Keep the title explanatory and what can be the usage of image and title should me more than 10 words. If there is description field in the metadata, provide a detailed description of the image with usage and other details of more than 100 and maximum 200 character. Avoid using the same keyword more than once and only give one word keywords. Give exact ${numKeywords} number of keywords. First 5 keywords should be the best and more relevant to image as these will used for SEO. `;
+  )}.Follow the case as provides don't make lowercase every key. if there is title in fields Keep the title explanatory and what can be the usage of image and title should me more than 10 words. If there is description field in the metadata, provide a detailed description of the image with usage and other details of more than 100 and maximum 200 character. Avoid using the same keyword more than once and only give one word keywords. Give exact ${numKeywords} number of keywords. First 5 keywords should be the best and more relevant to image as these will used for SEO. `;
 
   switch (title) {
     case "AdobeStock":
