@@ -13,7 +13,6 @@ import {
   UPDATE_INTERVAL,
 } from "./utils/config";
 import { generatePrompt } from "./utils/promptUtils";
-import { updateUserCredits } from "./utils/userUtils";
 
 const prisma = new PrismaClient();
 
@@ -32,115 +31,150 @@ export async function processTask(
   ourApi: boolean,
   useVision: boolean
 ) {
-  console.log({ useVision });
-  const generator = generators.find((g) => g.id === generatorId);
-  if (!generator) {
-    throw new Error("Invalid generator ID");
-  }
+  try {
+    const creditsEscrow = await prisma.escrow.findFirst({
+      where: { taskId },
+    });
 
-  let results: any[] = [];
-  let lastUpdateTime = Date.now();
-  let processedImages = 0;
-  let failedImages = 0;
-
-  const updateProgress = async (force = false) => {
-    const currentTime = Date.now();
-    if (force || currentTime - lastUpdateTime >= UPDATE_INTERVAL) {
-      await prisma.tasks.update({
-        where: { id: taskId },
-        data: {
-          progress: processedImages,
-          result: results,
-          status:
-            processedImages + failedImages === files.length
-              ? "COMPLETED"
-              : "PROCESSING",
-        },
-      });
-      lastUpdateTime = currentTime;
+    if (!creditsEscrow) {
+      throw new Error("No credits escrow found");
     }
-  };
 
-  const processSingleFile = async (file: any, retryCount = 0) => {
-    try {
-      const prompt = generatePrompt(generator, numKeywords);
-      let result;
-      if (useVision) {
-        result = await getMetadadataByImage({
-          url: file.url,
-          [apiType === "OPENAI" ? "openAiApiKey" : "geminiApiKey"]: apiKey,
-          metadataPrompt: prompt,
-        });
-      } else {
-        result = await getMetadadataByFilename({
-          filename: file.title,
-          [apiType === "OPENAI" ? "openAiApiKey" : "geminiApiKey"]: apiKey,
-          metadataPrompt: prompt,
-        });
-      }
-      if (!result.success) {
-        throw new Error(result.msg);
-      }
-      processedImages++;
-      const processedMetadata = processMetadata(result.data, file, generator);
-      results.push({
-        id: file.id,
-        metadata: { ...processedMetadata, status: true },
-      });
-    } catch (error) {
-      console.log("Error processing file:", file.title, error);
+    console.log({ useVision });
+    const generator = generators.find((g) => g.id === generatorId);
+    if (!generator) {
+      throw new Error("Invalid generator ID");
+    }
 
-      if (retryCount < 2) {
-        console.log(`Retrying file: ${file.title}, attempt ${retryCount + 1}`);
-        await processSingleFile(file, retryCount + 1);
-      } else {
-        failedImages++;
+    let results: any[] = [];
+    let lastUpdateTime = Date.now();
+    let processedImages = 0;
+    let failedImages = 0;
+
+    const updateProgress = async (force = false, creditsUsed?: number) => {
+      const currentTime = Date.now();
+      if (force || currentTime - lastUpdateTime >= UPDATE_INTERVAL) {
+        await prisma.task.update({
+          where: { id: taskId },
+          data: {
+            progress: processedImages,
+            result: results,
+            ...(creditsUsed && { creditsUsed }),
+            status:
+              processedImages + failedImages === files.length
+                ? "COMPLETED"
+                : "PROCESSING",
+          },
+        });
+        lastUpdateTime = currentTime;
+      }
+    };
+
+    const processSingleFile = async (file: any, retryCount = 0) => {
+      try {
+        const prompt = generatePrompt(generator, numKeywords);
+        let result;
+        if (useVision) {
+          result = await getMetadadataByImage({
+            url: file.url,
+            [apiType === "OPENAI" ? "openAiApiKey" : "geminiApiKey"]: apiKey,
+            metadataPrompt: prompt,
+          });
+        } else {
+          result = await getMetadadataByFilename({
+            filename: file.title,
+            [apiType === "OPENAI" ? "openAiApiKey" : "geminiApiKey"]: apiKey,
+            metadataPrompt: prompt,
+          });
+        }
+        if (!result.success) {
+          throw new Error(result.msg);
+        }
+        processedImages++;
+        const processedMetadata = processMetadata(result.data, file, generator);
         results.push({
           id: file.id,
-          metadata: { status: false },
+          metadata: { ...processedMetadata, status: true },
+        });
+      } catch (error) {
+        console.log("Error processing file:", file.title, error);
+
+        if (retryCount < 2) {
+          console.log(
+            `Retrying file: ${file.title}, attempt ${retryCount + 1}`
+          );
+          await processSingleFile(file, retryCount + 1);
+        } else {
+          failedImages++;
+          results.push({
+            id: file.id,
+            metadata: { status: false },
+          });
+        }
+      }
+
+      await updateProgress();
+    };
+
+    try {
+      // if apitype is gemini, only process 1 file at a time and max 15 per minute else processall at once
+      if (apiType === "GEMINI") {
+        const now = Date.now();
+        const delay = 4000; // Delay in milliseconds (15 files per minute = 4 seconds per file)
+
+        for (let i = 0; i < files.length; i++) {
+          await processSingleFile(files[i]);
+
+          if (i < files.length - 1) {
+            await new Promise((resolve) => setTimeout(resolve, delay));
+          }
+        }
+      } else {
+        await Promise.all(files.map((file) => processSingleFile(file)));
+      }
+
+      const creditsUsed =
+        processedImages *
+        (ourApi
+          ? useVision
+            ? CREDITS_PER_FILE_WITH_VISION_API
+            : CREDITS_PER_FILE_WITH_OUR_API
+          : CREDITS_PER_FILE_WITH_USER_API);
+      console.log("Credits used:", creditsUsed);
+      // check if all images processed successfully remove escrow else add credits back to credits table
+      await prisma.escrow.delete({
+        where: {
+          id: creditsEscrow.id,
+        },
+      });
+
+      if (failedImages !== 0) {
+        const creditsToAddBack = creditsEscrow.amount - creditsUsed;
+        await prisma.credits.update({
+          where: { userId },
+          data: {
+            balance: {
+              increment: creditsToAddBack,
+            },
+          },
+        });
+      }
+      await updateProgress(true, creditsUsed);
+    } catch (error) {
+      console.error("Error processing files:", error);
+      if (failedImages === files.length) {
+        await prisma.task.update({
+          where: { id: taskId },
+          data: { status: "FAILED" },
         });
       }
     }
-
-    await updateProgress();
-  };
-
-  try {
-    // if apitype is gemini, only process 1 file at a time and max 15 per minute else processall at once
-    if (apiType === "GEMINI") {
-      const now = Date.now();
-      const delay = 4000; // Delay in milliseconds (15 files per minute = 4 seconds per file)
-
-      for (let i = 0; i < files.length; i++) {
-        await processSingleFile(files[i]);
-
-        if (i < files.length - 1) {
-          await new Promise((resolve) => setTimeout(resolve, delay));
-        }
-      }
-    } else {
-      await Promise.all(files.map((file) => processSingleFile(file)));
-    }
-
-    const creditsUsed =
-      processedImages *
-      (ourApi
-        ? useVision
-          ? CREDITS_PER_FILE_WITH_VISION_API
-          : CREDITS_PER_FILE_WITH_OUR_API
-        : CREDITS_PER_FILE_WITH_USER_API);
-    console.log("Credits used:", creditsUsed);
-    await updateUserCredits(userId, creditsUsed, "USAGE");
-
-    await updateProgress(true);
   } catch (error) {
-    console.error("Error processing files:", error);
-    if (failedImages === files.length) {
-      await prisma.tasks.update({
-        where: { id: taskId },
-        data: { status: "FAILED" },
-      });
-    }
+    console.error("Error processing task:", error);
+    await prisma.task.update({
+      where: { id: taskId },
+      data: { status: "FAILED" },
+    });
   }
 }
 

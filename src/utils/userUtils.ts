@@ -30,7 +30,7 @@ export const updateUserCredits = async (
       },
     });
 
-    await prisma.credit_transactions.create({
+    await prisma.creditTransaction.create({
       data: {
         userId,
         amount,

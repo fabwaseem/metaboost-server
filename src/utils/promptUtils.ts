@@ -37,6 +37,6 @@ export const generatePrompt = (
       prompt += "Provide accurate and relevant metadata for the image. ";
   }
 
-  prompt += " Only give the response in JSON format. Add keywords in a array.";
+  prompt += " Only give the response in JSON format. Add keywords in a array. Don't add any names or numbers in metadata";
   return prompt;
 };
