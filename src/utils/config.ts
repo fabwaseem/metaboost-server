@@ -170,8 +170,10 @@ export const generators: Generator[] = [
   },
 ];
 
+
+
 export const PROCESS_FILES_AT_A_TIME = 30;
-export const UPDATE_INTERVAL = 10000;
+export const UPDATE_INTERVAL = 20000;
 export const TASK_FETCH_INTERVAL = 10000;
 export const MAX_FILE_SIZE = 1024 * 1024 * 10;
 export const MAX_FILES = 10;
