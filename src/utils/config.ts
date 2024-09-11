@@ -175,13 +175,8 @@ export const generators: Generator[] = [
 export const PROCESS_FILES_AT_A_TIME = 30;
 export const UPDATE_INTERVAL = 20000;
 export const TASK_FETCH_INTERVAL = 10000;
-export const MAX_FILE_SIZE = 1024 * 1024 * 10;
-export const MAX_FILES = 10;
 
 export const CREDITS_PER_FILE_WITH_OUR_API = 5;
 export const CREDITS_PER_FILE_WITH_VISION_API = 30;
 export const CREDITS_PER_FILE_WITH_USER_API = 1;
 
-export const CREDIT_VALUE = 0.00015;
-
-export const ADMIN_ROLES = ["ADMIN", "SUPERADMIN"];

@@ -54,6 +54,7 @@ export const getMetadadataByFilename = async ({
       const chatResponse = response.response?.text() || "";
       return { success: true, data: chatResponse };
     } catch (error) {
+      console.log(error);
       return { success: false, msg: "Something went wrong" };
     }
   } else {
