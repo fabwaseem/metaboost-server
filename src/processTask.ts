@@ -8,6 +8,7 @@ import {
 import {
   CREDITS_PER_FILE_WITH_OUR_API,
   CREDITS_PER_FILE_WITH_USER_API,
+  CREDITS_PER_FILE_WITH_USER_VISION_API,
   CREDITS_PER_FILE_WITH_VISION_API,
   generators,
   UPDATE_INTERVAL,
@@ -25,6 +26,7 @@ export async function processTask(
   }[],
   generatorId: number,
   numKeywords: number,
+  titleChars: number,
   userId: string,
   apiKey: string,
   apiType: "OPENAI" | "GEMINI",
@@ -72,7 +74,7 @@ export async function processTask(
 
     const processSingleFile = async (file: any, retryCount = 0) => {
       try {
-        const prompt = generatePrompt(generator, numKeywords);
+        const prompt = generatePrompt(generator, numKeywords, titleChars);
         let result;
         if (useVision) {
           result = await getMetadadataByImage({
@@ -139,6 +141,8 @@ export async function processTask(
           ? useVision
             ? CREDITS_PER_FILE_WITH_VISION_API
             : CREDITS_PER_FILE_WITH_OUR_API
+          : useVision
+          ? CREDITS_PER_FILE_WITH_USER_VISION_API
           : CREDITS_PER_FILE_WITH_USER_API);
       console.log("Credits used:", creditsUsed);
       // check if all images processed successfully remove escrow else add credits back to credits table
