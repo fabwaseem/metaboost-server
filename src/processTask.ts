@@ -211,7 +211,10 @@ function processMetadata(
 
   let fileName = file.filename;
   if (generator.id === 4) {
+    fileName = fileName.replace(/_/g, "");
     fileName = fileName.replace(/\s+/g, "_");
+    fileName = fileName.replace(/\(/g, "_");
+    fileName = fileName.replace(/\)/g, "_");
   }
 
   const baseMetadata: { [key: string]: any } = {
