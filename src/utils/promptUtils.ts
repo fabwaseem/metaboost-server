@@ -8,37 +8,77 @@ export const generatePrompt = (
   const { title, csvRequirements } = generator;
   const requiredFields = csvRequirements.generate;
 
-  let prompt = `You are an expert ${title} metadata JSON writer. Generate the following fields for images based on the provided details: ${requiredFields.join(
-    ", "
-  )}.Follow the case as provides don't make lowercase every key. if there is title in fields Keep the title explanatory and what can be the usage of image and title should be minimum ${titleChars} number of characters. If there is description field in the metadata, provide a detailed description of the image with usage and other details of more than 100 and maximum 200 character. Avoid using the same keyword more than once and only give one word keywords. Give exact ${numKeywords} number of keywords. First 5 keywords should be the best and more relevant to image as these will used for SEO. `;
+  let prompt = `You are a specialized ${title} metadata generator focused on creating high-quality, SEO-optimized JSON metadata for images.
 
+REQUIRED OUTPUT FORMAT:
+- Strictly respond with a single JSON object
+- All fields must follow the exact case sensitivity provided
+- No explanations or additional text outside the JSON
+
+REQUIRED FIELDS:
+${requiredFields.join(", ")}
+
+STRICT RULES:
+1. TITLE REQUIREMENTS:
+   - Exact length no more no less: ${titleChars} characters
+   - Must be descriptive and focus on image usage
+   - No personal names or numeric values
+   - Include primary subject and context
+
+2. DESCRIPTION REQUIREMENTS (if applicable):
+   - Length: 100-200 characters
+   - Include: image content, potential uses, key features
+   - Must be detailed and SEO-optimized
+   - No repetition from title
+
+3. KEYWORDS REQUIREMENTS:
+   - Exactly ${numKeywords} unique keywords
+   - Single words only, no phrases
+   - No duplicates allowed
+   - First 5 keywords must be highest-relevance SEO terms
+   - Order by relevance (most important first)
+   - No personal names or numbers
+
+4. CATEGORIES:`;
+
+  // Platform-specific category requirements
   switch (title) {
     case "AdobeStock":
-      prompt += `Select a relative category for the image from these options ${JSON.stringify(
+      prompt += `\n   - Select ONE category ID from: ${JSON.stringify(
         generator.categories
-      )}, give id of the category in the category field. not an object`;
+      )}\n   - Provide only the numeric ID in the category field`;
       break;
     case "Shutterstock":
-      prompt += `
-      Choose two relative categories for the image from these options ${JSON.stringify(
+      prompt += `\n   - Select TWO category IDs from: ${JSON.stringify(
         generator.categories
-      )}, only give the id of the categories in the category field, like this: [1, 2].`;
+      )}\n   - Format as array: [id1, id2]`;
       break;
     case "Freepik":
-      prompt += "";
-      break;
     case "Vecteezy":
     case "123rf":
-      prompt += "";
-      break;
     case "Dreamstime":
-      prompt += "";
+      prompt += "\n   - Follow platform-specific category guidelines";
       break;
     default:
-      prompt += "Provide accurate and relevant metadata for the image. ";
+      prompt += "\n   - Provide appropriate category classification";
   }
 
-  prompt +=
-    " Only give the response in JSON format. Add keywords in a array. Don't add any names or numbers in metadata";
+  prompt += `
+
+ADDITIONAL REQUIREMENTS:
+- Ensure all metadata is commercially relevant
+- Focus on current trends and SEO optimization
+- Avoid generic or overused terms
+- Maintain professional language
+- No placeholder or filler content
+
+OUTPUT VALIDATION:
+- Must be valid JSON format
+- All required fields must be present
+- All values must meet specified requirements
+- Keywords must be in an array format
+
+Return only the JSON object with no additional text or explanations.`;
+
   return prompt;
 };
