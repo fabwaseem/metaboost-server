@@ -40,7 +40,8 @@ export const getMetadadataByFilename = async ({
     }
 
     const metadata = response.choices[0].message.content;
-    return { success: true, data: metadata };
+    const usageMetadata = response.usage;
+    return { success: true, data: metadata, usageMetadata };
   } else if (geminiApiKey) {
     const genAI = new GoogleGenerativeAI(geminiApiKey);
     const model = genAI.getGenerativeModel({
@@ -52,7 +53,8 @@ export const getMetadadataByFilename = async ({
       const joinedPrompt = `${metadataPrompt}. /n Generate metadata for ${filename}`;
       const response = await model.generateContent(joinedPrompt);
       const chatResponse = response.response?.text() || "";
-      return { success: true, data: chatResponse };
+      const usageMetadata = response.response?.usageMetadata;
+      return { success: true, data: chatResponse, usageMetadata };
     } catch (error) {
       console.log(error);
       return { success: false, msg: "Something went wrong" };
@@ -109,7 +111,8 @@ export const getMetadadataByImage = async ({
     }
 
     const metadata = response.choices[0].message.content;
-    return { success: true, data: metadata };
+    const usageMetadata = response.usage;
+    return { success: true, data: metadata, usageMetadata };
   } else if (geminiApiKey) {
     const genAI = new GoogleGenerativeAI(geminiApiKey);
     const fileManager = new GoogleAIFileManager(geminiApiKey);
@@ -143,9 +146,10 @@ export const getMetadadataByImage = async ({
         },
       ]);
       const chatResponse = response.response?.text() || "";
+      const usageMetadata = response.response?.usageMetadata;
       // delete image
       fs.unlinkSync(`./${filename}`);
-      return { success: true, data: chatResponse };
+      return { success: true, data: chatResponse, usageMetadata };
     } catch (error) {
       console.log(error);
       return { success: false, msg: "Something went wrong" };

@@ -61,6 +61,7 @@ export async function processTask(
           data: {
             progress: processedImages,
             result: results,
+            aiProvider: apiType,
             ...(creditsUsed && { creditsUsed }),
             status:
               processedImages + failedImages === files.length
@@ -97,6 +98,7 @@ export async function processTask(
         results.push({
           id: file.id,
           metadata: { ...processedMetadata, status: true },
+          usageMetadata: result.usageMetadata,
         });
       } catch (error) {
         console.log("Error processing file:", file.title, error);
@@ -223,7 +225,13 @@ function processMetadata(
 
   generator.csvRequirements.generate.forEach((field) => {
     if (metadata[field]) {
-      baseMetadata[field] = metadata[field];
+      if (field === "Title") {
+        baseMetadata[field] = metadata[field]
+          .replace(/-/g, " ")
+          .replace(/[^a-zA-Z0-9 ]/g, "");
+      } else {
+        baseMetadata[field] = metadata[field];
+      }
     }
   });
 
