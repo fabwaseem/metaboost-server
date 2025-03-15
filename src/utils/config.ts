@@ -175,8 +175,3 @@ export const generators: Generator[] = [
 export const PROCESS_FILES_AT_A_TIME = 30;
 export const UPDATE_INTERVAL = 25000;
 export const TASK_FETCH_INTERVAL = 10000;
-
-export const CREDITS_PER_FILE_WITH_OUR_API = 10;
-export const CREDITS_PER_FILE_WITH_VISION_API = 50;
-export const CREDITS_PER_FILE_WITH_USER_API = 3;
-export const CREDITS_PER_FILE_WITH_USER_VISION_API = 5;

@@ -6,10 +6,6 @@ import {
   getMetadadataByImage,
 } from "./utils/apiUtils";
 import {
-  CREDITS_PER_FILE_WITH_OUR_API,
-  CREDITS_PER_FILE_WITH_USER_API,
-  CREDITS_PER_FILE_WITH_USER_VISION_API,
-  CREDITS_PER_FILE_WITH_VISION_API,
   generators,
   UPDATE_INTERVAL,
 } from "./utils/config";
@@ -34,15 +30,7 @@ export async function processTask(
   useVision: boolean
 ) {
   try {
-    const creditsEscrow = await prisma.escrow.findFirst({
-      where: { taskId },
-    });
 
-    if (!creditsEscrow) {
-      throw new Error("No credits escrow found");
-    }
-
-    console.log({ useVision });
     const generator = generators.find((g) => g.id === generatorId);
     if (!generator) {
       throw new Error("Invalid generator ID");
@@ -53,7 +41,7 @@ export async function processTask(
     let processedImages = 0;
     let failedImages = 0;
 
-    const updateProgress = async (force = false, creditsUsed?: number) => {
+    const updateProgress = async (force = false) => {
       const currentTime = Date.now();
       if (force || currentTime - lastUpdateTime >= UPDATE_INTERVAL) {
         await prisma.task.update({
@@ -62,7 +50,6 @@ export async function processTask(
             progress: processedImages,
             result: results,
             aiProvider: apiType,
-            ...(creditsUsed && { creditsUsed }),
             status:
               processedImages + failedImages === files.length
                 ? "COMPLETED"
@@ -136,36 +123,7 @@ export async function processTask(
       } else {
         await Promise.all(files.map((file) => processSingleFile(file)));
       }
-
-      const creditsUsed =
-        processedImages *
-        (ourApi
-          ? useVision
-            ? CREDITS_PER_FILE_WITH_VISION_API
-            : CREDITS_PER_FILE_WITH_OUR_API
-          : useVision
-          ? CREDITS_PER_FILE_WITH_USER_VISION_API
-          : CREDITS_PER_FILE_WITH_USER_API);
-      console.log("Credits used:", creditsUsed);
-      // check if all images processed successfully remove escrow else add credits back to credits table
-      await prisma.escrow.delete({
-        where: {
-          id: creditsEscrow.id,
-        },
-      });
-
-      if (failedImages !== 0) {
-        const creditsToAddBack = creditsEscrow.amount - creditsUsed;
-        await prisma.credits.update({
-          where: { userId },
-          data: {
-            balance: {
-              increment: creditsToAddBack,
-            },
-          },
-        });
-      }
-      await updateProgress(true, creditsUsed);
+      await updateProgress(true);
     } catch (error) {
       console.error("Error processing files:", error);
       if (failedImages === files.length) {
